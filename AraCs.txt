@@ -1,0 +1,302 @@
+using System.Security.Cryptography;
+using System.Text;
+using AdServer.Data.EF;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+namespace AdServer.UI.Common
+{
+    public partial class Search : System.Web.UI.Page
+    {
+        protected void Page_Load(object sender, EventArgs e)
+        {
+
+        }
+        [System.Web.Services.WebMethod]
+        public static string FillSearch(string search)
+        {
+            StringBuilder sb = new StringBuilder();
+
+
+            //sb.Append(@"<div class='MenuItemHeader' style='margin-left: 0px !important;'>KAMPANYA ELEMANI</div>");
+            //sb.Append("<div><ul>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("</ul></div>");
+            //sb.Append(@"<div class='MenuItemHeader' style='margin-left: 0px !important;'>BAÞLIK 2</div>");
+            //sb.Append("<div><ul>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("</ul></div>");
+            //sb.Append(@"<div class='MenuItemHeader' style='margin-left: 0px !important;'>BAÞLIK 3</div>");
+            //sb.Append("<div><ul>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("</ul></div>");
+            //sb.Append(@"<div class='MenuItemHeader' style='margin-left: 0px !important;'>BAÞLIK 4</div>");
+            //sb.Append("<div><ul>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("</ul></div>");
+            //sb.Append(@"<div class='MenuItemHeader' style='margin-left: 0px !important;'>BAÞLIK 5</div>");
+            //sb.Append("<div><ul>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("<li>Madde</li>");
+            //sb.Append("</ul></div>");
+            //return sb.ToString();
+
+            using (var db = new AdserverContext())
+            {
+                if (search.Trim().Length > 2)
+                {
+                    int isNumberSearch = 0;
+                    int.TryParse(search, out isNumberSearch);
+                    var campaignItemList = (from ci in db.CampaignItem
+                                            join c in db.Campaign on ci.CampaignID equals c.CampaignID
+                                            join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                                            where ci.ID == isNumberSearch && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                                            orderby ci.ID descending
+                                            select new { CampaignItemID = ci.ID, CampaignName = c.Name }).ToList();
+                    var campaignItemGroup = (from cg in db.CampaignItemGroups
+                                             join c in db.Campaign on cg.CampaignID equals c.CampaignID
+                                             join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                                             where cg.ID == isNumberSearch && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                                             orderby cg.ID descending
+                                             select new { CampaignItemGroupID = cg.ID, CampaignName = c.Name }).ToList();
+                    var campaignNumeric =
+                        (from c in db.Campaign
+                         join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                         where c.CampaignID == isNumberSearch && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                         orderby c.CampaignID descending
+                         select new { CampaignID = c.CampaignID, CampaignName = c.Name }).ToList();
+                    var customer = (from cu in Core.CachingEF.CustomerAgencieForDistributor()
+                                    where cu.CustomerName.ToLower().Contains(search.ToLower())
+                                    orderby cu.CustomerID descending
+                                    select cu).Take(5).ToList();
+                    var campaign =
+                        (from c in db.Campaign
+                         join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                         where c.Name.ToLower().Contains(search.ToLower()) && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                         orderby c.CampaignID descending
+                         select c).Take(5).ToList();
+
+                    var creative = (from c in db.Creative
+                                    join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                                    where c.CreativeName.ToLower().Contains(search.ToLower()) && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                                    orderby c.CreativeID descending
+                                    select c).Take(5).ToList();
+
+                    var creativeNumeric = (from c in db.Creative
+                                           join d in db.DistributorCustomer on c.CustomerID equals d.CustomerID
+                                           where c.CreativeID == isNumberSearch && d.DistributorID == AdServer.Common.Current.User.DistributorID
+                                           orderby c.CreativeID descending
+                                           select new { CreativeID = c.CreativeID, CreativeName = c.CreativeName }).ToList();
+
+                    if (isNumberSearch == 0 || customer.Count > 0)
+                    {
+                        sb.Append(@"<div class='MenuItemHeader SearchResultHead'><div class='SearchResultHeadLeft'>MÜÞTERÝ / AJANS</div><div class='SearchResultHeadRight'><a class='noDecoration' href='/UI/Customer/List.aspx?name=" + search.ToString() + "'>Tümünü Müþteride /</a> <a class='noDecoration' href='/UI/Agency/List.aspx?name=" + search.ToString() + "'> Ajansda Ara </a></div><div class='clear'></div></div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+                    //Müþterimi ajans mý diye baktýk.08.08.2014
+                    string customerType = string.Empty;
+                    foreach (var item in customer)
+                    {
+                        if (item.CustomerType == "A")
+                        {
+                            customerType = "Agency";
+                        }
+                        else
+                        {
+                            customerType = "Customer";
+                        }
+                        sb.Append(
+                            @"<a class='noDecoration' href='/UI/"+customerType+"/Detail.aspx?id=" +
+                            item.CustomerID.ToString() + "'><li class='SearchResultItem'> » " + item.CustomerName.ToString().Replace(search, "<b><font color='#990066'>" + search + "</font></b>").Replace(UppercaseFirst(search), "<b><font color='#990066'>" + UppercaseFirst(search) + "</font></b>").Replace(search.ToLower(), "<b><font color='#990066'>" + search.ToLower() + "</font></b>").Replace(search.ToUpper(), "<b><font color='#990066'>" + search.ToUpper() + "</font></b>").Replace(UppercaseFirst(search.ToLower()), "<b><font color='#990066'>" + UppercaseFirst(search.ToLower()) + "</font></b>") + "</li></a>");
+                    }
+                    if (isNumberSearch == 0 && customer.Count == 0)
+                    {
+                        sb.Append(
+                           @"<li>Herhangi Bir Müþteri Bulunamamýþtýr.</li>");
+                    }
+                    if (isNumberSearch == 0 || customer.Count > 0)
+                    {
+                        sb.Append("</ul></div>");
+                    }
+                    if (isNumberSearch == 0 || (campaignNumeric.Count == 0 && campaign.Count > 0))
+                    {
+                        sb.Append(@"<div class='MenuItemHeader SearchResultHead'><div class='SearchResultHeadLeft'>KAMPANYA</div><div class='SearchResultHeadRight'><a class='noDecoration' href='/UI/Campaign/List.aspx?name=" + search.ToString() + "'>Tümünde Ara</a></div><div class='clear'></div></div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+                    if (campaignNumeric.Count == 0)
+                    {
+                        foreach (var item in campaign)
+                        {
+                            sb.Append(
+                                @"<a class='noDecoration' href='/UI/Campaign/Detail.aspx?id=" +
+                                item.CampaignID.ToString() + "'><li class='SearchResultItem'> » " + item.Name.ToString().Replace(search, "<b><font color='#990066'>" + search + "</font></b>").Replace(UppercaseFirst(search), "<b><font color='#990066'>" + UppercaseFirst(search) + "</font></b>").Replace(search.ToLower(), "<b><font color='#990066'>" + search.ToLower() + "</font></b>").Replace(search.ToUpper(), "<b><font color='#990066'>" + search.ToUpper() + "</font></b>").Replace(UppercaseFirst(search.ToLower()), "<b><font color='#990066'>" + UppercaseFirst(search.ToLower()) + "</font></b>") + " (" + item.CampaignID +
+                                ")</li></a>");
+                        }
+                        if (isNumberSearch == 0 && campaign.Count == 0)
+                        {
+                            sb.Append(
+                               @"<li>Herhangi Bir Kampanya Bulunamamýþtýr.</li>");
+                        }
+                    }
+                    if (isNumberSearch == 0 || (campaignNumeric.Count == 0 && campaign.Count > 0))
+                    {
+                        sb.Append("</ul></div>");
+                    }
+                    if ((isNumberSearch != 0 && campaign.Count == 0) || campaignNumeric.Count > 0)
+                    {
+                        sb.Append(@"<div class='MenuItemHeader SearchResultHead'>KAMPANYA</div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+
+                    foreach (var item in campaignNumeric)
+                    {
+                        sb.Append(
+                            @"<a class='noDecoration' href='/UI/Campaign/Detail.aspx?id=" +
+                            item.CampaignID.ToString() + "'><li class='SearchResultItem'> » " + item.CampaignID.ToString() + " (" +
+                            item.CampaignName + ")</li></a>");
+                    }
+
+                    if (isNumberSearch != 0 && campaign.Count == 0 && campaignNumeric.Count == 0)
+                    {
+                        sb.Append(
+                           @"<li>Herhangi Bir Kampanya Bulunamamýþtýr.</li>");
+                    }
+
+                    if ((isNumberSearch != 0 && campaign.Count == 0) || campaignNumeric.Count > 0)
+                    {
+                        sb.Append("</ul></div>");
+                    }
+
+                    if (isNumberSearch != 0 || campaignItemList.Count > 0)
+                    {
+                        sb.Append(
+                            @"<div class='MenuItemHeader SearchResultHead'>KAMPANYA ELEMANI</div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+                    foreach (var item in campaignItemList)
+                    {
+                        sb.Append(
+                            @"<a class='noDecoration' href='/UI/CampaignItem/Detail.aspx?id=" +
+                            item.CampaignItemID.ToString() + "'><li class='SearchResultItem'> » " + item.CampaignItemID.ToString() + " (" +
+                            item.CampaignName + ")</li></a>");
+                    }
+                    if (isNumberSearch != 0 && campaignItemList.Count == 0)
+                    {
+                        sb.Append(
+                           @"<li>Herhangi Bir Kampanya Elemaný Bulunamamýþtýr.</li>");
+                    }
+
+                    if (isNumberSearch != 0 || campaignItemList.Count > 0)
+                    {
+                        sb.Append("</ul></div>");
+                    }
+
+                    if (isNumberSearch != 0 || campaignItemGroup.Count > 0)
+                    {
+                        sb.Append(
+                            @"<div class='MenuItemHeader SearchResultHead'>KAMPANYA ELEMANI GRUBU</div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+                    foreach (var item in campaignItemGroup)
+                    {
+                        sb.Append(
+                            @"<a class='noDecoration'' href='/UI/CampaignItemGroup/Detail.aspx?id=" +
+                            item.CampaignItemGroupID.ToString() + "'><li class='SearchResultItem'> » " + item.CampaignItemGroupID.ToString() + " (" +
+                            item.CampaignName + ")</li></a>");
+                    }
+                    if (isNumberSearch != 0 && campaignItemGroup.Count == 0)
+                    {
+                        sb.Append(
+                           @"<li>Herhangi Bir Kampanya Elemaný Gurubu Bulunamamýþtýr.</li>");
+                    }
+                    if (isNumberSearch != 0 || campaignItemGroup.Count > 0)
+                    {
+                        sb.Append("</ul></div>");
+                    }
+
+                    //-----------------
+                    if (isNumberSearch == 0 || (creativeNumeric.Count == 0 && creative.Count > 0))
+                    {
+                        sb.Append(@"<div class='MenuItemHeader SearchResultHead'><div class='SearchResultHeadLeft'>KREATÝF</div><div class='SearchResultHeadRight'><a class='noDecoration' href='/UI/Creative/List.aspx?name=" + search.ToString() + "'>Tümünde Ara</a></div><div class='clear'></div></div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+                    if (creativeNumeric.Count == 0)
+                    {
+                        foreach (var item in creative)
+                        {
+                            sb.Append(
+                                @"<a class='noDecoration' href='/UI/Creative/Detail.aspx?id=" +
+                                item.CreativeID.ToString() + "'><li class='SearchResultItem'> » " + item.CreativeName.ToString().Replace(search, "<b><font color='#990066'>" + search + "</font></b>").Replace(UppercaseFirst(search), "<b><font color='#990066'>" + UppercaseFirst(search) + "</font></b>").Replace(search.ToLower(), "<b><font color='#990066'>" + search.ToLower() + "</font></b>").Replace(search.ToUpper(), "<b><font color='#990066'>" + search.ToUpper() + "</font></b>").Replace(UppercaseFirst(search.ToLower()), "<b><font color='#990066'>" + UppercaseFirst(search.ToLower()) + "</font></b>") + " (" + item.CreativeID +
+                                ")</li></a>");
+                        }
+                        if (isNumberSearch == 0 && creative.Count == 0)
+                        {
+                            sb.Append(
+                               @"<li>Herhangi Bir Kreatif Bulunamamýþtýr.</li>");
+                        }
+                    }
+                    if (isNumberSearch == 0 || (creativeNumeric.Count == 0 && creative.Count > 0))
+                    {
+                        sb.Append("</ul></div>");
+                    }
+
+                    //---------
+
+                    if ((isNumberSearch != 0 && creative.Count == 0) || creativeNumeric.Count > 0)
+                    {
+                        sb.Append(@"<div class='MenuItemHeader SearchResultHead'>KREATÝF</div>");
+                        sb.Append("<div><ul class='SearchResultItemHead'>");
+                    }
+
+                    foreach (var item in creativeNumeric)
+                    {
+                        sb.Append(
+                            @"<a class='noDecoration' href='/UI/Creative/Detail.aspx?id=" +
+                            item.CreativeID.ToString() + "'><li class='SearchResultItem'> » " + item.CreativeID.ToString() + " (" +
+                            item.CreativeName + ")</li></a>");
+                    }
+
+                    if (isNumberSearch != 0 && creative.Count == 0 && creativeNumeric.Count == 0)
+                    {
+                        sb.Append(
+                           @"<li>Herhangi Bir Kreatif Bulunamamýþtýr.</li>");
+                    }
+
+                    if ((isNumberSearch != 0 && creative.Count == 0) || creativeNumeric.Count > 0)
+                    {
+                        sb.Append("</ul></div>");
+                    }
+                }
+                return sb.ToString();
+            }
+        }
+        static string UppercaseFirst(string s)
+        {
+            if (string.IsNullOrEmpty(s))
+            {
+                return string.Empty;
+            }
+            char[] a = s.ToCharArray();
+            a[0] = char.ToUpper(a[0]);
+            return new string(a);
+        }
+    }
+}

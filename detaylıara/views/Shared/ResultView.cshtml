@@ -1,0 +1,57 @@
+﻿@model DetaylıAra.Controllers.SearchModel
+@using DetaylıAra.Controllers;
+<div class='MenuItemHeader SearchResultHead'>
+    <div class='SearchResultHeadLeft'>CUSTOMERS</div><div class='SearchResultHeadRight'>
+    </div><div class='clear'></div>
+</div>
+<div>
+    <ul class='SearchResultItemHead'>
+        @foreach (var item in Model.CustomerList)
+        {
+            <li class='SearchResultItem'> » @Html.Raw(item.ContactName.Replace(Model.SearchKey, "<b><font color='#990066'>" + Model.SearchKey + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey) + "</font></b>")
+                                             .Replace(Model.SearchKey.ToLower(), "<b><font color='#990066'>" + Model.SearchKey.ToLower() + "</font></b>")
+                                             .Replace(Model.SearchKey.ToUpper(), "<b><font color='#990066'>" + Model.SearchKey.ToUpper() + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()) + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()) + "</font></b>")
+                                           )</li>
+        }
+    </ul>
+</div>
+<div class='MenuItemHeader SearchResultHead'>
+    <div class='SearchResultHeadLeft'>EMPLOYEES</div><div class='SearchResultHeadRight'>
+    </div><div class='clear'></div>
+</div>
+<div>
+    <ul class='SearchResultItemHead'>
+        @foreach (var item in Model.EmployeeList)
+        {
+            <li class='SearchResultItem'> » @Html.Raw(item.FirstName.Replace(Model.SearchKey, "<b><font color='#990066'>" + Model.SearchKey + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey) + "</font></b>")
+                                             .Replace(Model.SearchKey.ToLower(), "<b><font color='#990066'>" + Model.SearchKey.ToLower() + "</font></b>")
+                                             .Replace(Model.SearchKey.ToUpper(), "<b><font color='#990066'>" + Model.SearchKey.ToUpper() + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()) + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()) + "</font></b>")
+                                           )</li>
+        }
+    </ul>
+</div>
+<div class='MenuItemHeader SearchResultHead'>
+    <div class='SearchResultHeadLeft'>SUPPLIERS</div><div class='SearchResultHeadRight'>
+    </div><div class='clear'></div>
+</div>
+<div>
+    <ul class='SearchResultItemHead'>
+        @foreach (var item in Model.SupplierList)
+        {
+            <li class='SearchResultItem'> » @Html.Raw(item.ContactName.Replace(Model.SearchKey, "<b><font color='#990066'>" + Model.SearchKey + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey) + "</font></b>")
+                                             .Replace(Model.SearchKey.ToLower(), "<b><font color='#990066'>" + Model.SearchKey.ToLower() + "</font></b>")
+                                             .Replace(Model.SearchKey.ToUpper(), "<b><font color='#990066'>" + Model.SearchKey.ToUpper() + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToLower()) + "</font></b>")
+                                             .Replace(HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()), "<b><font color='#990066'>" + HtmlHelperExtensions.UppercaseFirst(Model.SearchKey.ToUpper()) + "</font></b>")
+                                           )</li>
+        }
+    </ul>
+</div>
+

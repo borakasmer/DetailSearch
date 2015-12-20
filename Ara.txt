@@ -1,0 +1,229 @@
+<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="LoginName.ascx.cs" Inherits="AdServer.UserControls.LoginName" %>
+<div class="HeaderSmallBox" id="UserBox">
+    <img src="/Images/MasterPage/avatar.png" class="SearchImageAvatar" />
+    &nbsp;
+    <ad:Label ID="lblLoginName" runat="server" ClientIDMode="Static"></ad:Label>
+    &nbsp;<img src="/Images/MasterPage/arrow_account.png" class="SearchImageArrows" />
+</div>
+<div class="HeaderSmallBox SearchResultHeaderSmallBox"  onclick="javascript:OpenDivWindow('/UI/Common/SendIssue.aspx?url=' + document.location.href, 700, 450);"
+    title="Sorun Bildir">
+    <img src="/images/masterpage/help.png" title="Sorun Bildir" />
+</div>
+<div class="HeaderSmallBox SearchResultHeaderSmallBox" onclick="javascript:OpenDivWindow('/UI/Common/VersionHistoryDetails.aspx', 700, 450);"
+    title="Sürüm Geçmiþi">
+    <img src="/images/masterpage/History.png" title="Sürüm Geçmiþi" />
+</div>
+
+<style type="text/css">
+ .noDecoration, a:link, a:visited 
+        {
+            text-decoration: none;
+        }
+</style>
+
+<script type="text/javascript">             
+    $(document).ready(function () {
+        var searchboxID = "#HeaderSearchBox";
+
+        $(searchboxID).keyup(function (event) {
+           
+            /*Ok tuþlarý ile yukarý ve aþþaðý hareket yapýldý.*/
+            
+            if ((event.keyCode == 40) &&  $("#searchDiv").css("display")!="none") {                
+                var liItem = $('div#searchDiv li').filter(function(){
+                var color = $(this).css("background-color").toLowerCase();
+                return color === "rgb(204, 204, 204)";
+                });
+
+                var nextliItem = liItem.parent().next().find("li");
+                liItem.css( "backgroundColor", "" );
+                nextliItem.css( "backgroundColor", "#CCCCCC");
+                
+                if (liItem.length > 0 && nextliItem.length == 0 && liItem.parent().parent().parent().attr("id")!="searchDiv") {
+                    if (liItem.parent().parent().parent().next().next().length > 0) {
+                        liItem.parent().parent().parent().next().next().find("li").first().css("backgroundColor", "#CCCCCC");
+                    } else {
+                         liItem.parent().parent().parent().parent().find("li").first().css("backgroundColor", "#CCCCCC");
+                    }
+                    liItem.css( "backgroundColor", "" );
+                }
+                else if (liItem.length > 0 && nextliItem.length == 0 && liItem.parent().parent().parent().attr("id") == "searchDiv") {
+                    if (liItem.parent().parent().next().next().length>0) {
+                        liItem.parent().parent().next().next().find("li").first().css("backgroundColor", "#CCCCCC");
+                    } else {
+                        liItem.parent().parent().parent().find("li").first().css("backgroundColor", "#CCCCCC");
+                    }
+                    liItem.css( "backgroundColor", "" );
+                }
+                if (liItem.length == 0) {
+                    $('div#searchDiv li:first').css({
+                        backgroundColor: '#CCCCCC'
+                    });
+                }
+            }
+            else if ((event.keyCode == 38) &&  $("#searchDiv").css("display")!="none") {
+                var liItem = $('div#searchDiv li').filter(function(){
+                var color = $(this).css("background-color").toLowerCase();
+                return color === "rgb(204, 204, 204)";
+                });
+
+                if (liItem.length == 0) {
+                    $('div#searchDiv li:last').css({
+                        backgroundColor: '#CCCCCC'
+                    });
+                } else {
+                    var preliItem = liItem.parent().prev().find("li");
+                    liItem.css("backgroundColor", "");
+                    if (preliItem.length == 0) {
+                        if (liItem.parent().parent().parent().prev().prev().length > 0) {
+                            if (liItem.parent().parent().parent().prev().prev().prop("tagName") == "DIV") {
+                                liItem.parent().parent().parent().prev().prev().find("li").last().css("backgroundColor", "#CCCCCC");
+                            } else {
+                                if (liItem.parent().parent().prev().prev().length>0) {
+                                    liItem.parent().parent().prev().prev().find("li").last().css("backgroundColor", "#CCCCCC");
+                                }
+                                else if (liItem.parent().parent().prev().parent().length > 0) {
+                                    liItem.parent().parent().prev().parent().find("li").last().css("backgroundColor", "#CCCCCC");
+                                }
+                            }
+
+                        } else {
+                            liItem.parent().parent().parent().parent().find("li").last().css("backgroundColor", "#CCCCCC");
+                        }
+                    } else {
+                        preliItem.css("backgroundColor", "#CCCCCC");
+                    }
+                }
+            }
+            /*else if (event.keyCode == 13 && $("#searchDiv").css("display") != "none") {
+                var liItem = $('div#searchDiv li').filter(function(){
+                var color = $(this).css("background-color").toLowerCase();
+                return color === "rgb(204, 204, 204)";
+                });
+                if (liItem.length > 0) {
+                     window.location.href =liItem.parent().attr("href");
+                }
+            }*/
+             else if(event.keyCode !=13 && event.keyCode !=37 && event.keyCode !=39){
+                if ($.trim($(searchboxID).val()).length > 2) {
+
+                    delay(function() {
+
+                        var options = {};
+                        options.url = '/UI/Common/Search.aspx/FillSearch',
+                            options.type = "POST";
+                        options.data = "{search:'" + $(searchboxID).val() + "'}",
+                            options.contentType = "application/json; charset=utf-8",
+                            options.dataType = "json",
+                            options.success = function(result) {
+                                $("#searchDiv").html(result.d);
+                                $("#searchDiv").show();
+                            };
+                        options.error = function(err) {
+                            if (err.status == 500) {
+                                window.location.href = "/UI/Common/SignIn.aspx";
+                            } else {
+                                if (err.status != 0) {
+                                    alert(err.statusText);
+                                }
+                            }
+                        };
+                        $.ajax(options);
+                    }, 500);
+                } else {
+                    $("#searchDiv").hide();
+                }
+            }
+        });
+        
+        $(searchboxID).focus(function () {
+            if (($.trim($("#searchDiv").html()).length) < 2 || $(searchboxID).val()=="Detaylý ara...") {
+                $(searchboxID).val("");
+            }
+        });
+
+        var speed = 200;
+        $( "#searchDiv").mouseleave(function() {
+            speed=200;
+            //console.log('speed=' + speed);
+        });
+        $( "#searchDiv").mouseenter(function() {
+            speed=5000;
+            //console.log('speed=' + speed);            
+        });
+
+        $(searchboxID).blur(function () {
+            //if ( ($("#searchDiv").html().length) < 2) {
+            delay(function() {
+                $(searchboxID).val("Detaylý ara...");
+                $("#searchDiv").hide();
+            }, speed ); 
+            //}            
+        });  
+
+        /*Enter hatasý düzeltildi.Yukarý aþþaðaý oklarý ile hareket için gerekli kodlar yazýldý.*/
+         $(searchboxID).keydown(function (event) {
+             if (event.keyCode == '13') {
+                 event.preventDefault();
+                 if ($("#searchDiv").css("display") != "none") {
+                     var liItem = $('div#searchDiv li').filter(function() {
+                         var color = $(this).css("background-color").toLowerCase();
+                         return color === "rgb(204, 204, 204)";
+                     });
+                     if (liItem.length > 0 && liItem.parent().prop("tagName")=="A") {
+                         window.location.href = liItem.parent().attr("href");
+                     }
+                 }
+             }
+         });     
+        
+/*
+        $(searchboxID).keydown(function (event) {
+            if (event.keyCode == '13') {
+                event.preventDefault();
+                window.location.href = "/UI/Campaign/List.aspx?name=" + $(searchboxID).val();
+            }
+        });
+
+        $(searchboxID).click(function () {
+            $(searchboxID).val("");
+        });
+
+        $(searchboxID).blur(function () {
+            $(searchboxID).val("Detaylý ara...");
+        });
+*/
+        $('.HeaderSmallBox').hover(function () { $(this).toggleClass('HeaderSmallBoxHover'); });
+        //$(searchboxID).hover(function () { $(this).toggleClass('HeaderSmallBoxHover'); });
+
+        $(document).click(HideUserMenu); //close on bubble!
+        $("#UserBox").click(function (e) {
+            $("#UserMenu").show();
+            $("#UserBox").addClass("HeaderSmallBoxHover");
+            e.stopPropagation(e); //prevent bubble!
+        });
+
+        function HideUserMenu(e) {
+            $("#UserMenu").hide();
+            $("#UserBox").removeClass("HeaderSmallBoxHover");
+        }
+    });
+
+    var delay = (function(){
+        var timer = 0;
+        return function(callback, ms){
+        clearTimeout (timer);
+        timer = setTimeout(callback, ms);
+  };
+})();
+</script>
+<input type="text" id="HeaderSearchBox" name="HeaderSearchBox" value="Detaylý ara..." autocomplete="off"/>
+
+<div class="SearchBox" id="searchDiv">
+</div>
+
+<div id="UserMenu">
+    <a href="/UI/User/MyAccount.aspx?tab=0">Kullanýcý Bilgilerim</a> <a href="/UI/User/MyAccount.aspx?tab=1">Ana Sayfa Düzeni</a> <a href="/UI/User/MyAccount.aspx?tab=2">Þifre Güncelle</a>
+    <hr class="hrBlue" />
+    <a href="/UI/Common/SignOut.aspx" style="color: #e1c125 !important;">Çýkýþ</a>
+</div>
